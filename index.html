@@ -6107,6 +6107,13 @@ function migrateLibNames(){
       changed = true;
       return;
     }
+    // 顺带把「37+36课」这种倒序短标签改正
+    try{
+      if(it.lesson){
+        const sh = shortOfUnit(it.lesson.unit || it.unit || "");
+        if(sh && it.lesson.short !== sh){ it.lesson.short = sh; changed = true; }
+      }
+    }catch(e){}
     const nm = suggestLibName(it);
     if(nm && nm !== it.name){
       it.name = nm;
