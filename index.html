@@ -3751,8 +3751,13 @@ function charsFromList(list, from){
 }
 /* 汉字关的字从哪来：① 课号字表（田字格上核对过的）② 课件汉字页拼音反查 ③ 最后才拆生词 */
 function charsForLesson(les){
-  const fixed = hzCharsByNo(les);
-  if(fixed.length) return charsFromList(fixed, "汉字页");
+  // 「按生词猜课号」的字表只给上传/合并的课件用。内置课（L19/L20/L21_22 等）没有文件名课号，
+  // 猜出来的会是别的课的字（L21_22 曾被猜成第 3 课的「口名多」），会串课。
+  const isCustom = !les || les.id === "custom";
+  if(isCustom){
+    const fixed = hzCharsByNo(les);
+    if(fixed.length) return charsFromList(fixed, "汉字页");
+  }
   const py = (les && les.hzPy && les.hzPy.length) ? les.hzPy : [];
   const got = py.length ? charsFromHZPy(py) : [];
   if(got.length) return got;
@@ -3878,8 +3883,10 @@ function mountGrid(t){
 
 /* ---------- 汉字关：先描红，再听音找字 ---------- */
 function writeStart(){
+  // 课件没带田字格页时，也别空着：按课号字表 / 汉字页拼音 / 本课生词各补一次
+  if(!L.chars || !L.chars.length) L.chars = charsForLesson(L);
   if(!L.chars || !L.chars.length){
-    skipStage("这套课件里没有「练习写汉字」页（田字格），所以这一课不练写字，直接进下一关。");
+    skipStage("这套课件里没有「练习写汉字」页，本课生词也拆不出可练的字，先进入下一关。");
     return;
   }
   W = { i:0, writer:null, done:new Array(L.chars.length).fill(false) };
