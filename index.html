@@ -3651,7 +3651,8 @@ function hzForPy(py){
    以后新增课件：汉字页图片识别不出来时，把这一课的字补进表里即可（如 23:"银楼"）。 */
 const HZ_BY_NO = {
   3:"口名多", 5:"很行往", 7:"个会坐", 9:"头买卖",
-  11:"门问们", 13:"位件作", 15:"白的自", 17:"几机没", 19:"生姓星"
+  11:"门问们", 13:"位件作", 15:"白的自", 17:"几机没", 19:"生姓星",
+  21:"口名多"   // 21+22 课（水果与价钱）田字格：口、名、多
 };
 /* 上面这几课的课件生词（从 PPT 生词页抽出来的，只用来「认课」）。
    课件正文的「第 X 课」标题页经常是上一课的残留，靠它认不出课；生词重合度高得多。 */
@@ -3751,12 +3752,18 @@ function charsFromList(list, from){
 }
 /* 汉字关的字从哪来：① 课号字表（田字格上核对过的）② 课件汉字页拼音反查 ③ 最后才拆生词 */
 function charsForLesson(les){
-  // 「按生词猜课号」的字表只给上传/合并的课件用。内置课（L19/L20/L21_22 等）没有文件名课号，
-  // 猜出来的会是别的课的字（L21_22 曾被猜成第 3 课的「口名多」），会串课。
+  // 上传/合并的课件：按文件名课号（_nos）查字表；内置课：直接按 unit 里的课号查，
+  // 都不做「按生词猜课号」，免得串到别的课去。
   const isCustom = !les || les.id === "custom";
   if(isCustom){
     const fixed = hzCharsByNo(les);
     if(fixed.length) return charsFromList(fixed, "汉字页");
+  }else{
+    const ns = lessonNos(les);
+    for(let i=0;i<ns.length;i++){
+      const hit = HZ_BY_NO[ns[i]];
+      if(hit) return charsFromList([...hit], "汉字页");
+    }
   }
   const py = (les && les.hzPy && les.hzPy.length) ? les.hzPy : [];
   const got = py.length ? charsFromHZPy(py) : [];
